@@ -1,9 +1,6 @@
 package ru.practicum.model;
 
-import com.vladmihalcea.hibernate.type.basic.Inet;
-import com.vladmihalcea.hibernate.type.basic.PostgreSQLInetType;
 import lombok.*;
-import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

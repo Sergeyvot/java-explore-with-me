@@ -1,23 +1,16 @@
 package ru.practicum;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.HitDto;
 import ru.practicum.dto.ViewStatsDto;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;

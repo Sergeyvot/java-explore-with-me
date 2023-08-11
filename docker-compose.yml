@@ -6,12 +6,13 @@ services:
     container_name: stats_server_container
     ports:
       - "9090:9090"
-    depends_on:
-        - stats-db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/statistic
       - SPRING_DATASOURCE_USER=root
       - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - stats-db
+    command: "dockerized -wait=tcp://stats-db:5432"
 
   stats-db:
     image: postgres:15-alpine
@@ -31,13 +32,13 @@ services:
     container_name: ewm_service_container
     ports:
       - "8080:8080"
-    depends_on:
-        - ewm-db
     environment:
       - EWM_STATS_URL=http://stats-server:9090
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/main_service
       - SPRING_DATASOURCE_USER=root
       - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - ewm-db
 
   ewm-db:
     image: postgres:15-alpine

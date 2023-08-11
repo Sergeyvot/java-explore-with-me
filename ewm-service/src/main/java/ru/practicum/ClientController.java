@@ -1,11 +1,7 @@
 package ru.practicum;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.HitDto;
@@ -32,9 +28,7 @@ public class ClientController {
     public List<ViewStatsDto> getBookings(@RequestParam(name = "start") @NotNull String start,
                                           @RequestParam(name = "end") @NotNull String end,
                                           @RequestParam(name = "uris", required = false) List<String> uris,
-                                          @RequestParam(name = "unique", defaultValue = "false") Boolean unique) throws JsonProcessingException {
-
-
+                                          @RequestParam(name = "unique", defaultValue = "false") Boolean unique) {
 
         return statClient.getStats(start, end, uris, unique);
     }

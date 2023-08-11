@@ -1,6 +1,5 @@
 package ru.practicum;
 
-import com.vladmihalcea.hibernate.type.basic.Inet;
 import ru.practicum.dto.HitDto;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.model.EndpointHit;
