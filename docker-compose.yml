@@ -12,7 +12,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=root
     depends_on:
       - stats-db
-    command: "dockerized -wait=tcp://stats-db:5432"
 
   stats-db:
     image: postgres:15-alpine

@@ -26,13 +26,8 @@ public class StatsController {
     public void addHit(@RequestBody HitDto hitDto) {
 
         statsService.addPost(hitDto);
-        /*BookingDtoView result = bookingService.addNewBooking(userId, bookingDto);
-        if (result != null) {
-            log.info("Запрос выполнен. В приложение добавлено бронирование вещи с id {}", result.getItem().getId());
-        } else {
-            log.info("Бронирование вещи с id {} не удалось", bookingDto.getItemId());
-        }
-        return result;*/
+
+        log.info("Save hit {}", hitDto);
     }
 
     @GetMapping("/stats")
@@ -42,11 +37,12 @@ public class StatsController {
                                        @RequestParam(name = "unique", defaultValue = "false") Boolean unique) {
         LocalDateTime startDateTime = LocalDateTime.parse(start, formatter);
         LocalDateTime endDateTime = LocalDateTime.parse(end, formatter);
-        /*BookingState state = BookingState.from(stateParam)
-                .orElseThrow(() -> new UnsupportedStatusException("Unknown state: " + stateParam));
-        checkPaginationParamsGateway(from, size);
-        log.info("Get booking with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
-        return bookingClient.getBookingsOwner(userId, state, from, size);*/
-        return statsService.getStats(startDateTime, endDateTime, uris, unique);
+        List<ViewStatsDto> resultList = statsService.getStats(startDateTime, endDateTime, uris, unique);
+        if (resultList != null) {
+            log.info("Get stats with start {}, end={}, uris={}, unique={}", start, end, uris, unique);
+        } else {
+            log.info("Get stats not executed");
+        }
+        return resultList;
     }
 }
