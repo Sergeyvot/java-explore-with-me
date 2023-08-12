@@ -45,11 +45,6 @@ public class StatsServiceImpl implements StatsService {
             throw new ValidationException("Время запроса задано некорректно.");
         }
 
-        if (start == null) {
-            start = LocalDateTime.now();
-            end = start.plusYears(10);
-        }
-
         Instant startInstant = start.toInstant(OffsetDateTime.now().getOffset());
         Instant endInstant = end.toInstant(OffsetDateTime.now().getOffset());
 
@@ -58,7 +53,7 @@ public class StatsServiceImpl implements StatsService {
                 List<ViewStatsDto> result = new ArrayList<>();
                 List<ViewStatsUniqueIp> uniqueIp = repository.getStatsWithoutUriWithUniqueIp(startInstant, endInstant);
                 List<String> uniqueUri = uniqueIp.stream()
-                        .map(v -> v.getUri())
+                        .map(ViewStatsUniqueIp::getUri)
                         .distinct().collect(Collectors.toList());
                 for (String uri : uniqueUri) {
                     long count = uniqueIp.stream()
