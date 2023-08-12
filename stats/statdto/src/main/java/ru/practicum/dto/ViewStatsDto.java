@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class ViewStatsDto implements Comparable<ViewStatsDto>{
+public class ViewStatsDto implements Comparable<ViewStatsDto> {
     @NotNull
     private String app;
     @NotNull
