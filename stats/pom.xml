@@ -32,6 +32,12 @@
                 <artifactId>statdto</artifactId>
                 <version>0.0.1-SNAPSHOT</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.vladmihalcea</groupId>
+                <artifactId>hibernate-types-55</artifactId>
+                <version>2.13.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

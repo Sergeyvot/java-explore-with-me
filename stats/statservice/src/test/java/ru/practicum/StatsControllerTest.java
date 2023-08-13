@@ -67,8 +67,7 @@ public class StatsControllerTest {
         when(statsService.getStats(any(), any(), anyList(), anyBoolean()))
                 .thenReturn(list);
 
-        mvc.perform(get("/stats?start=2022-11-20 12:00:00&end=2023-11-20 12:00:00&uris=[/events]")
-                        .characterEncoding(StandardCharsets.UTF_8)
+        mvc.perform(get("/stats?start=2022-11-20 12:00:00&end=2023-11-20 12:00:00&uris=[/events]")                        .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

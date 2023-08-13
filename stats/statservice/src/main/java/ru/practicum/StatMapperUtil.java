@@ -1,5 +1,6 @@
 package ru.practicum;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.dto.HitDto;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.model.EndpointHit;
@@ -7,12 +8,10 @@ import ru.practicum.model.ViewStats;
 
 import java.time.OffsetDateTime;
 
+@UtilityClass
 public final class StatMapperUtil {
 
-    private StatMapperUtil() {
-    }
-
-    public static EndpointHit toEndpointHit(HitDto hitDto) {
+    public EndpointHit toEndpointHit(HitDto hitDto) {
         EndpointHit.EndpointHitBuilder endpointHit = EndpointHit.builder();
 
         if (hitDto.getId() != null) {
@@ -26,7 +25,7 @@ public final class StatMapperUtil {
         return endpointHit.build();
     }
 
-    public static ViewStatsDto toViewStatsDto(ViewStats viewStats) {
+    public ViewStatsDto toViewStatsDto(ViewStats viewStats) {
         ViewStatsDto.ViewStatsDtoBuilder viewStatsDto = ViewStatsDto.builder();
 
         viewStatsDto.app(viewStats.getApp());

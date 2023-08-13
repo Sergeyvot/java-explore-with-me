@@ -3,17 +3,13 @@ package ru.practicum.model;
 import lombok.*;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
-
 @Getter
 @Setter
 @Component
 @Data
 @NoArgsConstructor
 public class ViewStats {
-    @NotNull
     private String app;
-    @NotNull
     private String uri;
     private Long hits;
 

@@ -12,7 +12,6 @@ import ru.practicum.dao.EndpointHitRepository;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.model.ViewStats;
-import ru.practicum.model.ViewStatsUniqueIp;
 import ru.practicum.service.StatsService;
 import ru.practicum.service.StatsServiceImpl;
 
@@ -42,11 +41,9 @@ public class StatsServiceTest {
         LocalDateTime startDateTime = LocalDateTime.ofInstant(start, ZoneId.systemDefault());
         LocalDateTime endDateTime = LocalDateTime.ofInstant(end, ZoneId.systemDefault());
         Mockito
-                .when(mockEndpointHitRepository.getStatsByUri("/events", start, end))
-                .thenReturn(new ViewStats("ewm-main-service", "/events", 1L));
-        Mockito
-                .when(mockEndpointHitRepository.getStatsByUri("/events/1", start, end))
-                .thenReturn(new ViewStats("ewm-main-service", "/events/1", 2L));
+                .when(mockEndpointHitRepository.getStatsByUri(Arrays.asList("/events", "/events/1"), start, end))
+                .thenReturn(Arrays.asList(new ViewStats("ewm-main-service", "/events/1", 2L),
+                        new ViewStats("ewm-main-service", "/events", 1L)));
 
         List<ViewStatsDto> resultList = statsService.getStats(startDateTime, endDateTime,
                 Arrays.asList("/events", "/events/1"), false);
@@ -88,12 +85,9 @@ public class StatsServiceTest {
         LocalDateTime endDateTime = LocalDateTime.ofInstant(end, ZoneId.systemDefault());
 
         Mockito
-                .when(mockEndpointHitRepository.getStatsByUriWithUniqueIp("/events", start, end))
-                .thenReturn(Arrays.asList(new ViewStatsUniqueIp("ewm-main-service", "/events", "192.163.0.1"),
-                        new ViewStatsUniqueIp("ewm-main-service", "/events", "192.164.0.2")));
-        Mockito
-                .when(mockEndpointHitRepository.getStatsByUriWithUniqueIp("/events/1", start, end))
-                .thenReturn(Arrays.asList(new ViewStatsUniqueIp("ewm-main-service", "/events/1", "192.164.0.2")));
+                .when(mockEndpointHitRepository.getStatsByUriWithUniqueIp(Arrays.asList("/events", "/events/1"), start, end))
+                .thenReturn(Arrays.asList(new ViewStats("ewm-main-service", "/events", 2L),
+                        new ViewStats("ewm-main-service", "/events/1", 1L)));
 
         List<ViewStatsDto> resultList = statsService.getStats(startDateTime, endDateTime,
                 Arrays.asList("/events", "/events/1"), true);
@@ -140,9 +134,8 @@ public class StatsServiceTest {
 
         Mockito
                 .when(mockEndpointHitRepository.getStatsWithoutUriWithUniqueIp(start, end))
-                .thenReturn(Arrays.asList(new ViewStatsUniqueIp("ewm-main-service", "/events", "192.163.0.1"),
-                        new ViewStatsUniqueIp("ewm-main-service", "/events/1", "192.164.0.1"),
-                        new ViewStatsUniqueIp("ewm-main-service", "/events/1", "192.164.0.2")));
+                .thenReturn(Arrays.asList(new ViewStats("ewm-main-service", "/events/1", 2L),
+                        new ViewStats("ewm-main-service", "/events", 1L)));
 
         List<ViewStatsDto> resultList = statsService.getStats(startDateTime, endDateTime,
                 null, true);

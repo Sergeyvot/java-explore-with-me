@@ -2,25 +2,23 @@ package ru.practicum.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.HitDto;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.service.StatsService;
 
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static javax.print.attribute.Size2DSyntax.MM;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@Validated
 public class StatsController {
 
     private final StatsService statsService;
-    final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @PostMapping("/hit")
     public void addHit(@RequestBody HitDto hitDto) {
@@ -31,13 +29,12 @@ public class StatsController {
     }
 
     @GetMapping("/stats")
-    public List<ViewStatsDto> getStats(@RequestParam(name = "start") @NotNull String start,
-                                       @RequestParam(name = "end") @NotNull String end,
+    public List<ViewStatsDto> getStats(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+                                       @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
                                        @RequestParam(name = "uris", required = false) List<String> uris,
                                        @RequestParam(name = "unique", defaultValue = "false") Boolean unique) {
-        LocalDateTime startDateTime = LocalDateTime.parse(start, formatter);
-        LocalDateTime endDateTime = LocalDateTime.parse(end, formatter);
-        List<ViewStatsDto> resultList = statsService.getStats(startDateTime, endDateTime, uris, unique);
+
+        List<ViewStatsDto> resultList = statsService.getStats(start, end, uris, unique);
         if (resultList != null) {
             log.info("Get stats with start {}, end={}, uris={}, unique={}", start, end, uris, unique);
         } else {

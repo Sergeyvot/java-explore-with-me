@@ -9,14 +9,10 @@ import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dao.EndpointHitRepository;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.model.EndpointHit;
-import ru.practicum.model.ViewStats;
-import ru.practicum.model.ViewStatsUniqueIp;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,39 +46,24 @@ public class StatsServiceImpl implements StatsService {
 
         if (uris == null || uris.isEmpty()) {
             if (unique) {
-                List<ViewStatsDto> result = new ArrayList<>();
-                List<ViewStatsUniqueIp> uniqueIp = repository.getStatsWithoutUriWithUniqueIp(startInstant, endInstant);
-                List<String> uniqueUri = uniqueIp.stream()
-                        .map(ViewStatsUniqueIp::getUri)
-                        .distinct().collect(Collectors.toList());
-                for (String uri : uniqueUri) {
-                    long count = uniqueIp.stream()
-                            .filter(v -> v.getUri().equals(uri)).count();
-                    result.add(StatMapperUtil.toViewStatsDto(new ViewStats(uniqueIp.get(0).getApp(), uri, count)));
-                }
-                Collections.sort(result);
-                return result;
+                return repository.getStatsWithoutUriWithUniqueIp(startInstant, endInstant).stream()
+                        .map(StatMapperUtil::toViewStatsDto)
+                        .collect(Collectors.toList());
             } else {
                 return repository.getStatsWithoutUri(startInstant, endInstant).stream()
                         .map(StatMapperUtil::toViewStatsDto)
                         .collect(Collectors.toList());
             }
         } else {
-            List<ViewStatsDto> result = new ArrayList<>();
             if (unique) {
-                for (String uri : uris) {
-                    List<ViewStatsUniqueIp> uniqueIp = repository.getStatsByUriWithUniqueIp(uri, startInstant, endInstant);
-                    if (!uniqueIp.isEmpty()) {
-                        result.add(StatMapperUtil.toViewStatsDto(new ViewStats(uniqueIp.get(0).getApp(), uri, (long) uniqueIp.size())));
-                    }
-                }
+                return repository.getStatsByUriWithUniqueIp(uris, startInstant, endInstant).stream()
+                        .map(StatMapperUtil::toViewStatsDto)
+                        .collect(Collectors.toList());
             } else {
-                for (String uri : uris) {
-                    result.add(StatMapperUtil.toViewStatsDto(repository.getStatsByUri(uri, startInstant, endInstant)));
-                }
+                return repository.getStatsByUri(uris, startInstant, endInstant).stream()
+                        .map(StatMapperUtil::toViewStatsDto)
+                        .collect(Collectors.toList());
             }
-            Collections.sort(result);
-            return result;
         }
     }
 }

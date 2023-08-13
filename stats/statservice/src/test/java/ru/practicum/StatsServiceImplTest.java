@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.HitDto;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.model.ViewStats;
-import ru.practicum.model.ViewStatsUniqueIp;
 import ru.practicum.service.StatsService;
 
 import java.time.LocalDateTime;
@@ -30,7 +29,6 @@ public class StatsServiceImplTest {
 
     private final StatsService statsService;
     private final ViewStats viewStats;
-    private final ViewStatsUniqueIp viewStatsUniqueIp;
 
     @Test
     void testGetStats() {

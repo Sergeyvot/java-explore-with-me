@@ -17,31 +17,27 @@ public class BaseClient {
     }
 
     protected List<ViewStatsDto> get(String path) {
-        return get(path, null, null);
+        return get(path, null);
     }
 
-    protected List<ViewStatsDto> get(String path, long userId) {
-        return get(path, userId, null);
-    }
-
-    protected List<ViewStatsDto> get(String path, @Nullable Long userId, @Nullable Map<String, Object> parameters) {
-        return (List<ViewStatsDto>) makeAndSendRequest(HttpMethod.GET, path, userId, parameters, null);
+    protected List<ViewStatsDto> get(String path, @Nullable Map<String, Object> parameters) {
+        return (List<ViewStatsDto>) makeAndSendRequest(HttpMethod.GET, path, parameters, null);
     }
 
     protected <T> void post(String path, T body) {
-        post(path, null, null, body);
+        post(path, null, body);
     }
 
     protected <T> void post(String path, long userId, T body) {
-        post(path, userId, null, body);
+        post(path, null, body);
     }
 
-    protected <T> void post(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
-        makeAndSendRequest(HttpMethod.POST, path, userId, parameters, body);
+    protected <T> void post(String path, @Nullable Map<String, Object> parameters, T body) {
+        makeAndSendRequest(HttpMethod.POST, path, parameters, body);
     }
 
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, Long userId, @Nullable Map<String, Object> parameters, @Nullable T body) {
-        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
+    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body) {
+        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders());
 
         ResponseEntity<Object> ewnStatServerResponse;
         try {
@@ -56,13 +52,11 @@ public class BaseClient {
         return prepareGatewayResponse(ewnStatServerResponse);
     }
 
-    private HttpHeaders defaultHeaders(Long userId) {
+    private HttpHeaders defaultHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        if (userId != null) {
-            headers.set("X-Sharer-User-Id", String.valueOf(userId));
-        }
+
         return headers;
     }
 
