@@ -11,8 +11,6 @@ import ru.practicum.service.StatsService;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static javax.print.attribute.Size2DSyntax.MM;
-
 @RestController
 @RequiredArgsConstructor
 @Slf4j
