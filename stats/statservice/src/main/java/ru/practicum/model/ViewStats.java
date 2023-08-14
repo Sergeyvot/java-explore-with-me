@@ -1,11 +1,9 @@
 package ru.practicum.model;
 
 import lombok.*;
-import org.springframework.stereotype.Component;
 
 @Getter
 @Setter
-@Component
 @Data
 @NoArgsConstructor
 public class ViewStats {
