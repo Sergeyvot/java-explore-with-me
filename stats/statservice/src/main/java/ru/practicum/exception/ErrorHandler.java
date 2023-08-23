@@ -20,7 +20,7 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowableException(final Throwable e) {
 
-        log.warn("{}: {}",e.getClass().getSimpleName(), e.getMessage());
+        log.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
@@ -35,23 +35,23 @@ public class ErrorHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
-        Map<String,String> errorReport = new HashMap<>();
+        Map<String, String> errorReport = new HashMap<>();
         e.getBindingResult()
                 .getAllErrors()
                 .forEach(error -> {
-                    String fieldName = ((FieldError)error).getField();
+                    String fieldName = ((FieldError) error).getField();
                     String message = error.getDefaultMessage();
                     errorReport.put(fieldName, message);
                 });
-        log.warn("{}: {}",e.getClass().getSimpleName(), errorReport);
+        log.warn("{}: {}", e.getClass().getSimpleName(), errorReport);
         return new ErrorResponse(errorReport.keySet().toString() + errorReport.values());
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMissingServletRequestParameterException(final MissingServletRequestParameterException e) {
-        
-        log.warn("{}: {}",e.getClass().getSimpleName(), e.getMessage());
+
+        log.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 }
