@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.CategoryMapperUtil;
 import ru.practicum.category.dao.CategoryRepository;
 import ru.practicum.category.dto.CategoryDto;
@@ -26,7 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repository;
     private final EventRepository eventRepository;
 
-
+    @Transactional
     @Override
     public CategoryDto addCategory(CategoryDto categoryDto) {
         Category checkCategory = repository.findByName(categoryDto.getName());
@@ -42,11 +43,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void removeCategory(int catId) {
-        Long longCatId = (long)catId;
+        Long longCatId = (long) catId;
         Category category = repository.findById(longCatId)
                 .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", catId)));
 
-        List<Event> checkList =  eventRepository.findAllByCategoryId(longCatId);
+        List<Event> checkList = eventRepository.findAllByCategoryId(longCatId);
         if (checkList != null && !checkList.isEmpty()) {
             throw new ConflictException("Cannot delete a category with linked events");
         }
@@ -55,6 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
         repository.deleteById((long) catId);
     }
 
+    @Transactional
     @Override
     public CategoryDto updateCategory(int catId, CategoryDto categoryDto) {
         Long longCatId = (long) catId;

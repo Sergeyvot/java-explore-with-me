@@ -9,10 +9,10 @@ import org.springframework.data.domain.Pageable;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatClient;
-import ru.practicum.category.CategoryMapperUtil;
+import ru.practicum.category.dao.CategoryRepository;
 import ru.practicum.category.model.Category;
-import ru.practicum.category.service.CategoryService;
 import ru.practicum.dto.HitDto;
 import ru.practicum.event.EventMapperUtil;
 import ru.practicum.event.State;
@@ -27,8 +27,8 @@ import ru.practicum.event.model.RequestParamUser;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
+import ru.practicum.user.dao.UserRepository;
 import ru.practicum.user.model.User;
-import ru.practicum.user.service.UserService;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -43,15 +43,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
     private final EventRepository repository;
-    private final UserService userService;
-    private final CategoryService categoryService;
+    private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
     private final StatClient statClient;
 
-
+    @Transactional
     @Override
     public EventFullDto createEvent(NewEventDto newEventDto, long userId) {
-        User initiator = userService.findUserById(userId);
-        Category category = CategoryMapperUtil.toCategory(categoryService.findCategoryById(newEventDto.getCategory()));
+        User initiator = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
+        Category category = categoryRepository.findById((long)newEventDto.getCategory())
+                .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", newEventDto.getCategory())));
 
         Event newEvent = EventMapperUtil.toEvent(newEventDto, category, initiator).toBuilder()
                 .createdOn(Instant.now())
@@ -61,9 +63,11 @@ public class EventServiceImpl implements EventService {
         return EventMapperUtil.toEventFullDto(createdEvent);
     }
 
+    @Transactional
     @Override
     public EventFullDto updateEventUser(UpdateEventDto updateEventDto, long userId, long eventId) {
-        User user = userService.findUserById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
         Event event = repository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
 
@@ -77,7 +81,8 @@ public class EventServiceImpl implements EventService {
         Event updateEvent = event.toBuilder()
                 .annotation(updateEventDto.getAnnotation() != null ? updateEventDto.getAnnotation() : event.getAnnotation())
                 .category(updateEventDto.getCategory() != null ?
-                        CategoryMapperUtil.toCategory(categoryService.findCategoryById(updateEventDto.getCategory())) :
+                        categoryRepository.findById((long)updateEventDto.getCategory())
+                                .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", updateEventDto.getCategory()))) :
                         event.getCategory())
                 .description(updateEventDto.getDescription() != null ? updateEventDto.getDescription() : event.getDescription())
                 .eventDate(updateEventDto.getEventDate() != null ? updateEventDto.getEventDate().toInstant(OffsetDateTime.now().getOffset()) :
@@ -110,6 +115,7 @@ public class EventServiceImpl implements EventService {
         return EventMapperUtil.toEventFullDto(repository.save(resultUpdateEvent));
     }
 
+    @Transactional
     @Override
     public EventFullDto updateEventAdmin(UpdateEventDto updateEventDto, long eventId) {
         Event event = repository.findById(eventId)
@@ -126,7 +132,8 @@ public class EventServiceImpl implements EventService {
         Event updateEvent = event.toBuilder()
                 .annotation(updateEventDto.getAnnotation() != null ? updateEventDto.getAnnotation() : event.getAnnotation())
                 .category(updateEventDto.getCategory() != null ?
-                        CategoryMapperUtil.toCategory(categoryService.findCategoryById(updateEventDto.getCategory())) :
+                        categoryRepository.findById((long)updateEventDto.getCategory())
+                                .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", updateEventDto.getCategory()))) :
                         event.getCategory())
                 .description(updateEventDto.getDescription() != null ? updateEventDto.getDescription() : event.getDescription())
                 .eventDate(updateEventDto.getEventDate() != null ? updateEventDto.getEventDate().toInstant(OffsetDateTime.now().getOffset()) :
@@ -160,18 +167,6 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event findById(long eventId) {
-
-        return repository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
-    }
-
-    @Override
-    public Event saveEvent(Event event) {
-        return repository.save(event);
-    }
-
-    @Override
     public List<EventFullDto> findAdminEventsByParameters(RequestParamAdmin parameters) {
         if (parameters.getRangeEnd() != null && parameters.getRangeStart() != null &&
                 parameters.getRangeEnd().isBefore(parameters.getRangeStart())) {
@@ -191,7 +186,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> findEventsUser(long userId, Integer from, Integer size) {
-        User user = userService.findUserById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
         Pageable pageable = PageRequest.of(from > 0 ? from / size : 0, size);
 
         log.info("Запрошена информация о событиях, созданных пользователем с id {}. Данные получены", userId);
@@ -202,7 +198,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto findFullEventUser(long userId, long eventId) {
-        User user = userService.findUserById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
         Event event = repository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
 

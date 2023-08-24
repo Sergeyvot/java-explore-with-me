@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.compilation.CompilationMapperUtil;
 import ru.practicum.compilation.dao.CompilationRepository;
 import ru.practicum.compilation.dto.CompilationDto;
@@ -13,11 +14,11 @@ import ru.practicum.compilation.dto.NewCompilationDto;
 import ru.practicum.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.compilation.model.Compilation;
 import ru.practicum.event.EventMapperUtil;
+import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.service.EventService;
+import ru.practicum.event_compilation.dao.EventCompilationRepository;
 import ru.practicum.event_compilation.model.EventCompilation;
 import ru.practicum.event_compilation.model.EventId;
-import ru.practicum.event_compilation.service.EventCompilationService;
 import ru.practicum.exception.NotFoundException;
 
 import java.util.ArrayList;
@@ -29,9 +30,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository repository;
-    private final EventCompilationService eventCompilationService;
-    private final EventService eventService;
+    private final EventCompilationRepository eventCompilationRepository;
+    private final EventRepository eventRepository;
 
+    @Transactional
     @Override
     public CompilationDto addCompilation(NewCompilationDto newCompilationDto) {
         Compilation compilation = repository.save(CompilationMapperUtil.toCompilation(newCompilationDto));
@@ -41,8 +43,12 @@ public class CompilationServiceImpl implements CompilationService {
                     .map(Long::valueOf).collect(Collectors.toList());
 
             for (Long id : eventIds) {
-                EventCompilation eventCompilation = eventCompilationService.saveEventCompilation(id, compilation.getId());
-                events.add(EventMapperUtil.toEventShortDto(eventService.findById(id)));
+                EventCompilation.EventCompilationBuilder eventCompilation = EventCompilation.builder();
+                eventCompilation.eventId(id);
+                eventCompilation.compilationId(compilation.getId());
+                eventCompilationRepository.save(eventCompilation.build());
+                events.add(EventMapperUtil.toEventShortDto(eventRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", id)))));
             }
         }
 
@@ -58,9 +64,10 @@ public class CompilationServiceImpl implements CompilationService {
 
         log.info("Из приложения удалена подборка событий с id {}", compId);
         repository.deleteById(compId);
-        eventCompilationService.deleteByCompilationId(compId);
+        eventCompilationRepository.deleteByCompilationId(compId);
     }
 
+    @Transactional
     @Override
     public CompilationDto updateCompilation(UpdateCompilationRequest updateCompilationDto, long compId) {
         Compilation compilation = repository.findById(compId)
@@ -73,24 +80,29 @@ public class CompilationServiceImpl implements CompilationService {
                 .build();
 
         if (updateCompilationDto.getEvents() != null) {
-            eventCompilationService.deleteByCompilationId(compId);
+            eventCompilationRepository.deleteByCompilationId(compId);
             List<Long> eventIds = updateCompilationDto.getEvents().stream()
                     .map(Long::valueOf).collect(Collectors.toList());
 
             for (Long id : eventIds) {
-                eventCompilationService.saveEventCompilation(id, compId);
-                events.add(EventMapperUtil.toEventShortDto(eventService.findById(id)));
+                EventCompilation.EventCompilationBuilder eventCompilation = EventCompilation.builder();
+                eventCompilation.eventId(id);
+                eventCompilation.compilationId(compId);
+                eventCompilationRepository.save(eventCompilation.build());
+                events.add(EventMapperUtil.toEventShortDto(eventRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", id)))));
             }
             log.info("Обновлена подборка событий с id {}. Обновленные данные сохранены", compId);
             return CompilationMapperUtil.toCompilationDto(updateCompilation).toBuilder().events(events).build();
         } else {
-            List<EventId> eventsIds = eventCompilationService.findEventIds(compId);
+            List<EventId> eventsIds = eventCompilationRepository.findAllEventIdByCompilationId(compId);
             List<Long> eventIds = eventsIds.stream()
                     .map(EventId::getEventId)
                     .collect(Collectors.toList());
 
             for (Long id : eventIds) {
-                events.add(EventMapperUtil.toEventShortDto(eventService.findById(id)));
+                events.add(EventMapperUtil.toEventShortDto(eventRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", id)))));
             }
             log.info("Обновлена подборка событий с id {}. Обновленные данные сохранены", compId);
             return CompilationMapperUtil.toCompilationDto(updateCompilation).toBuilder().events(events).build();
@@ -130,13 +142,14 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     private CompilationDto compilationFiller(CompilationDto compilationDto) {
-        List<EventId> eventsIds = eventCompilationService.findEventIds(compilationDto.getId());
+        List<EventId> eventsIds = eventCompilationRepository.findAllEventIdByCompilationId(compilationDto.getId());
         List<Long> eventId = eventsIds.stream()
                 .map(EventId::getEventId)
                 .collect(Collectors.toList());
         List<EventShortDto> events = new ArrayList<>();
         for (Long id : eventId) {
-            events.add(EventMapperUtil.toEventShortDto(eventService.findById(id)));
+            events.add(EventMapperUtil.toEventShortDto(eventRepository.findById(id)
+                    .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", id)))));
         }
         CompilationDto.CompilationDtoBuilder compilation = CompilationDto.builder();
         compilation.id(compilationDto.getId());

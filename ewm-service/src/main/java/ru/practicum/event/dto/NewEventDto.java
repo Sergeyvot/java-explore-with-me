@@ -33,11 +33,11 @@ public class NewEventDto {
     private LocalDateTime eventDate;
     @NotNull(message = "Field: location. Error: must not be null. Value: null")
     private Location location;
-    @Value("${some.key:false}")
+    @Value("${paid:false}")
     private Boolean paid;
-    @Value("${some.key:0}")
+    @Value("${participantLimit:0}")
     private Integer participantLimit;
-    @Value("${some.key:true}")
+    @Value("${requestModeration:true}")
     private Boolean requestModeration;
     @NotBlank(message = "Field: title. Error: must not be blank. Value: null")
     @Length(min = 3, max = 120, message = "Field: title. Error: length of the field does not meet the restrictions")

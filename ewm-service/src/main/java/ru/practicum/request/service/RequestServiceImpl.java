@@ -3,8 +3,9 @@ package ru.practicum.request.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.event.dao.EventRepository;
 import ru.practicum.event.model.Event;
-import ru.practicum.event.service.EventService;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
@@ -15,8 +16,8 @@ import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.request.dto.ParticipationRequestDto;
 import ru.practicum.request.model.Request;
+import ru.practicum.user.dao.UserRepository;
 import ru.practicum.user.model.User;
-import ru.practicum.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -28,17 +29,20 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RequestServiceImpl implements RequestService {
     private final RequestRepository repository;
-    private final UserService userService;
-    private final EventService eventService;
+    private final UserRepository userRepository;
+    private final EventRepository eventRepository;
 
+    @Transactional
     @Override
     public ParticipationRequestDto createRequest(long userId, long eventId) {
-        User checkUser = userService.findUserById(userId);
+        User checkUser = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
         Request checkRequest = repository.findByRequesterAndEvent(userId, eventId);
         if (checkRequest != null) {
             throw new ConflictException("Cannot add a repeat request.");
         }
-        Event event = eventService.findById(eventId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
         if (userId == event.getInitiator().getId()) {
             throw new ConflictException("The initiator of the event cannot apply for participation in it.");
         }
@@ -57,7 +61,7 @@ public class RequestServiceImpl implements RequestService {
             request.status(Status.CONFIRMED);
             Event updateEvent = event.toBuilder()
                     .confirmedRequests(event.getConfirmedRequests() + 1).build();
-            eventService.saveEvent(updateEvent);
+            eventRepository.save(updateEvent);
         } else {
             request.status(Status.PENDING);
         }
@@ -65,6 +69,7 @@ public class RequestServiceImpl implements RequestService {
         return RequestMapperUtil.toParticipationRequestDto(repository.save(request.build()));
     }
 
+    @Transactional
     @Override
     public ParticipationRequestDto cancelRequest(long userId, long requestId) {
         Request request = repository.findById(requestId)
@@ -82,7 +87,8 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<ParticipationRequestDto> findRequests(long userId) {
-        User checkUser = userService.findUserById(userId);
+        User checkUser = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
         List<Request> requests = repository.findByRequester(userId);
         log.info("Пользователем с id {} запрошены свои заявки на участие в событиях", userId);
         return requests.stream()
@@ -90,15 +96,18 @@ public class RequestServiceImpl implements RequestService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public EventRequestStatusUpdateResult updateEventUserRequests(EventRequestStatusUpdateRequest updateEventDto,
                                                                   long userId, long eventId) {
-        Event event = eventService.findById(eventId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
         if (event.getParticipantLimit() == 0 || (!event.getRequestModeration())) {
             throw new ValidationException(String.format("Confirmation of requests to participate in an event with id %d " +
                     "is not required", eventId));
         }
-        User user = userService.findUserById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
         if (!user.getId().equals(event.getInitiator().getId())) {
             throw new ValidationException("The user is not the initiator of the event.");
         }
@@ -133,13 +142,13 @@ public class RequestServiceImpl implements RequestService {
                     }
                     Event updateEvent = event.toBuilder()
                             .confirmedRequests(updateConfirmedRequests).build();
-                    eventService.saveEvent(updateEvent);
+                    eventRepository.save(updateEvent);
                 }
             }
         }
         Event updateEvent = event.toBuilder()
                 .confirmedRequests(updateConfirmedRequests).build();
-        eventService.saveEvent(updateEvent);
+        eventRepository.save(updateEvent);
         List<ParticipationRequestDto> confirmedRequests = repository.findAllByEventAndStatus(eventId, "CONFIRMED")
                 .stream().map(RequestMapperUtil::toParticipationRequestDto).collect(Collectors.toList());
         List<ParticipationRequestDto> rejectedRequests = repository.findAllByEventAndStatus(eventId, "REJECTED")
@@ -153,8 +162,10 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<ParticipationRequestDto> findEventUserRequests(long userId, long eventId) {
-        Event event = eventService.findById(eventId);
-        User user = userService.findUserById(userId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
         if (!user.getId().equals(event.getInitiator().getId())) {
             throw new ValidationException("The user is not the initiator of the event.");
         }

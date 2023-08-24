@@ -21,6 +21,6 @@ public class NewCompilationDto {
     @NotBlank
     @Length(min = 1, max = 50)
     private String title;
-    @Value("${some.key:false}")
+    @Value("${pinned:false}")
     private Boolean pinned;
 }

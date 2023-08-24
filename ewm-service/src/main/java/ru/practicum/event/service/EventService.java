@@ -19,10 +19,6 @@ public interface EventService {
 
     EventFullDto updateEventAdmin(UpdateEventDto updateEventDto, long eventId);
 
-    Event findById(long eventId);
-
-    Event saveEvent(Event event);
-
     List<EventFullDto> findAdminEventsByParameters(RequestParamAdmin parameters);
 
     List<EventShortDto> findEventsUser(long userId, Integer from, Integer size);
