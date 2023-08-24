@@ -4,7 +4,6 @@ import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.dto.NewEventDto;
 import ru.practicum.event.dto.UpdateEventDto;
-import ru.practicum.event.model.Event;
 import ru.practicum.event.model.RequestParamAdmin;
 import ru.practicum.event.model.RequestParamUser;
 
