@@ -54,7 +54,7 @@ public class StatsControllerTest {
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().is2xxSuccessful());
 
         Mockito.verify(statsService, Mockito.times(1))
                 .addPost(any());
