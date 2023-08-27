@@ -21,7 +21,9 @@
 							"\r",
 							"pm.test(\"Код статуса ответа должен быть 201\", () => {\r",
 							"    pm.expect(pm.response.code).to.equal(201); // код статуса ответа 201\r",
-							"}); "
+							"}); \r",
+							"\r",
+							"pm.environment.set('user1', pm.response.json().id);"
 						],
 						"type": "text/javascript"
 					}
@@ -67,7 +69,9 @@
 							"\r",
 							"pm.test(\"Код статуса ответа должен быть 201\", () => {\r",
 							"    pm.expect(pm.response.code).to.equal(201); // код статуса ответа 201\r",
-							"});"
+							"});\r",
+							"\r",
+							"pm.environment.set('categoryId', pm.response.json().id);"
 						],
 						"type": "text/javascript"
 					}
@@ -122,7 +126,9 @@
 							"\r",
 							"pm.test(\"Код статуса ответа должен быть 201\", () => {\r",
 							"    pm.expect(pm.response.code).to.equal(201); // код статуса ответа 201\r",
-							"});"
+							"});\r",
+							"\r",
+							"pm.environment.set('event_id', pm.response.json().id);"
 						],
 						"type": "text/javascript"
 					}
@@ -133,7 +139,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"annotation\": \"Главное событие года\",\r\n    \"category\": 1,\r\n    \"description\": \"Самое главное событие года\",\r\n    \"eventDate\": \"2023-09-09 19:00:00\",\r\n    \"location\": {\r\n        \"lat\": 8.678,\r\n        \"lon\": -20.345\r\n    },\r\n    \"title\": \"Выпускной\"\r\n}",
+					"raw": "{\r\n    \"annotation\": \"Главное событие года\",\r\n    \"category\": {{categoryId}},\r\n    \"description\": \"Самое главное событие года\",\r\n    \"eventDate\": \"2023-09-09 19:00:00\",\r\n    \"location\": {\r\n        \"lat\": 8.678,\r\n        \"lon\": -20.345\r\n    },\r\n    \"title\": \"Выпускной\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -153,7 +159,7 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "{{userId}}"
+							"value": "{{user1}}"
 						}
 					]
 				}
@@ -202,7 +208,7 @@
 					"variable": [
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					]
 				}
@@ -224,7 +230,9 @@
 							"\r",
 							"pm.test(\"Код статуса ответа должен быть 201\", () => {\r",
 							"    pm.expect(pm.response.code).to.equal(201); // код статуса ответа 201\r",
-							"});"
+							"});\r",
+							"\r",
+							"pm.environment.set('user2', pm.response.json().id);"
 						],
 						"type": "text/javascript"
 					}
@@ -270,7 +278,9 @@
 							"\r",
 							"pm.test(\"Код статуса ответа должен быть 201\", () => {\r",
 							"    pm.expect(pm.response.code).to.equal(201); // код статуса ответа 201\r",
-							"});"
+							"});\r",
+							"\r",
+							"pm.environment.set('user3', pm.response.json().id);"
 						],
 						"type": "text/javascript"
 					}
@@ -316,7 +326,9 @@
 							"\r",
 							"pm.test(\"Код статуса ответа должен быть 201\", () => {\r",
 							"    pm.expect(pm.response.code).to.equal(201); // код статуса ответа 201\r",
-							"});"
+							"});\r",
+							"\r",
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -326,7 +338,7 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "{{base_Url}}/users/:userId/requests?eventId=1",
+					"raw": "{{base_Url}}/users/:userId/requests?eventId={{event_id}}",
 					"host": [
 						"{{base_Url}}"
 					],
@@ -338,13 +350,13 @@
 					"query": [
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					],
 					"variable": [
 						{
 							"key": "userId",
-							"value": "2"
+							"value": "{{user2}}"
 						}
 					]
 				}
@@ -376,7 +388,7 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "{{base_Url}}/users/:userId/requests?eventId=1",
+					"raw": "{{base_Url}}/users/:userId/requests?eventId={{event_id}}",
 					"host": [
 						"{{base_Url}}"
 					],
@@ -388,13 +400,13 @@
 					"query": [
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					],
 					"variable": [
 						{
 							"key": "userId",
-							"value": "3"
+							"value": "{{user3}}"
 						}
 					]
 				}
@@ -416,7 +428,9 @@
 							"\r",
 							"pm.test(\"Код статуса ответа должен быть 201\", () => {\r",
 							"    pm.expect(pm.response.code).to.equal(201); // код статуса ответа 201\r",
-							"});"
+							"});\r",
+							"\r",
+							"pm.environment.set('comment1', pm.response.json().id);"
 						],
 						"type": "text/javascript"
 					}
@@ -449,11 +463,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "2"
+							"value": "{{user2}}"
 						},
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					]
 				}
@@ -475,7 +489,9 @@
 							"\r",
 							"pm.test(\"Код статуса ответа должен быть 201\", () => {\r",
 							"    pm.expect(pm.response.code).to.equal(201); // код статуса ответа 201\r",
-							"});"
+							"});\r",
+							"\r",
+							"pm.environment.set('comment2', pm.response.json().id);"
 						],
 						"type": "text/javascript"
 					}
@@ -508,11 +524,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "3"
+							"value": "{{user3}}"
 						},
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					]
 				}
@@ -561,7 +577,7 @@
 					"variable": [
 						{
 							"key": "commentId",
-							"value": "1"
+							"value": "{{comment1}}"
 						}
 					]
 				}
@@ -610,7 +626,7 @@
 					"variable": [
 						{
 							"key": "commentId",
-							"value": "2"
+							"value": "{{comment2}}"
 						}
 					]
 				}
@@ -658,7 +674,7 @@
 					"variable": [
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					]
 				}
@@ -707,11 +723,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "1"
+							"value": "{{user1}}"
 						},
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					]
 				}
@@ -752,11 +768,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "2"
+							"value": "{{user2}}"
 						},
 						{
 							"key": "commentId",
-							"value": "1"
+							"value": "{{comment1}}"
 						}
 					]
 				}
@@ -778,7 +794,9 @@
 							"\r",
 							"pm.test(\"Код статуса ответа должен быть 201\", () => {\r",
 							"    pm.expect(pm.response.code).to.equal(201); // код статуса ответа 201\r",
-							"});"
+							"});\r",
+							"\r",
+							"pm.environment.set('comment3', pm.response.json().id);"
 						],
 						"type": "text/javascript"
 					}
@@ -811,11 +829,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "3"
+							"value": "{{user3}}"
 						},
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					]
 				}
@@ -864,7 +882,7 @@
 					"variable": [
 						{
 							"key": "commentId",
-							"value": "3"
+							"value": "{{comment3}}"
 						}
 					]
 				}
@@ -914,11 +932,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "3"
+							"value": "{{user3}}"
 						},
 						{
 							"key": "commentId",
-							"value": "3"
+							"value": "{{comment3}}"
 						}
 					]
 				}
@@ -967,11 +985,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "1"
+							"value": "{{user1}}"
 						},
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					]
 				}
@@ -1020,7 +1038,7 @@
 					"variable": [
 						{
 							"key": "commentId",
-							"value": "2"
+							"value": "{{comment2}}"
 						}
 					]
 				}
@@ -1110,11 +1128,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "2"
+							"value": "{{user2}}"
 						},
 						{
 							"key": "commentId",
-							"value": "2"
+							"value": "{{comment2}}"
 						}
 					]
 				}
@@ -1156,11 +1174,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "2"
+							"value": "{{user2}}"
 						},
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					]
 				}
@@ -1210,11 +1228,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "2"
+							"value": "{{user2}}"
 						},
 						{
 							"key": "commentId",
-							"value": "2"
+							"value": "{{comment2}}"
 						}
 					]
 				}
@@ -1264,11 +1282,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "2"
+							"value": "{{user2}}"
 						},
 						{
 							"key": "commentId",
-							"value": "1"
+							"value": "{{comment1}}"
 						}
 					]
 				}
@@ -1307,11 +1325,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "3"
+							"value": "{{user3}}"
 						},
 						{
 							"key": "commentId",
-							"value": "2"
+							"value": "{{comment2}}"
 						}
 					]
 				}
@@ -1352,11 +1370,11 @@
 					"variable": [
 						{
 							"key": "userId",
-							"value": "2"
+							"value": "{{user2}}"
 						},
 						{
 							"key": "commentId",
-							"value": "3"
+							"value": "{{comment3}}"
 						}
 					]
 				}
@@ -1403,7 +1421,7 @@
 					"variable": [
 						{
 							"key": "eventId",
-							"value": "1"
+							"value": "{{event_id}}"
 						}
 					]
 				}
@@ -1433,7 +1451,7 @@
 	],
 	"variable": [
 		{
-			"key": "categoryId",
+			"key": "category",
 			"value": "1",
 			"type": "string"
 		},
@@ -1443,8 +1461,38 @@
 			"type": "string"
 		},
 		{
-			"key": "userId",
+			"key": "user1",
 			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "user2",
+			"value": "2",
+			"type": "string"
+		},
+		{
+			"key": "user3",
+			"value": "3",
+			"type": "string"
+		},
+		{
+			"key": "event_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "comment1",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "comment2",
+			"value": "2",
+			"type": "string"
+		},
+		{
+			"key": "comment3",
+			"value": "3",
 			"type": "string"
 		}
 	]
