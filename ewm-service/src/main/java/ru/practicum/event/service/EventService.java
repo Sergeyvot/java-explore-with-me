@@ -1,13 +1,11 @@
 package ru.practicum.event.service;
 
-import ru.practicum.event.dto.EventFullDto;
-import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.dto.NewEventDto;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.*;
 import ru.practicum.event.model.RequestParamAdmin;
 import ru.practicum.event.model.RequestParamUser;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 import java.util.List;
 
 public interface EventService {
@@ -28,4 +26,17 @@ public interface EventService {
 
     List<EventShortDto> findPublicEventsByParameters(RequestParamUser parameters, HttpServletRequest request);
 
+    CommentDto updateCommentStatus(CommentStatusUpdateDto updateCommentDto, long commentId);
+
+    Collection<CommentDto> findCommentsByEventPublic(long eventId, Integer from, Integer size);
+
+    CommentDto addComment(NewCommentDto newCommentDto, long userId, long eventId);
+
+    CommentDto updateComment(UpdateCommentDtoUser updateCommentDto, long userId, long commentId);
+
+    void deleteComment(long userId, long commentId);
+
+    List<CommentDto> findCommentsByEventUser(long userId, long eventId, Integer from, Integer size);
+
+    CommentDto findCommentUser(long userId, long commentId);
 }

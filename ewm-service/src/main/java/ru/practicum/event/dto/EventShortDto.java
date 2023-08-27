@@ -9,6 +9,7 @@ import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,4 +26,5 @@ public class EventShortDto {
     private boolean paid;
     private String title;
     private Integer views;
+    private List<CommentDto> comments;
 }
