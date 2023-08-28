@@ -27,3 +27,4 @@ PR - https://github.com/Sergeyvot/java-explore-with-me/pull/5
 
 Соответственно, в выходные варианты Dto по событиям (EventFullDto, EventShortDto) добавлено
 поле List<CommentDto> comments. Наполняется при формировании экземпляра Dto Event
+
