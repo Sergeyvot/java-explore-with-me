@@ -264,6 +264,7 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public CommentDto updateCommentStatus(CommentStatusUpdateDto updateCommentDto, long commentId) {
         Comment comment = commentRepository.findById(commentId)
@@ -302,6 +303,7 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public CommentDto addComment(NewCommentDto newCommentDto, long userId, long eventId) {
         User user = userRepository.findById(userId)
@@ -322,6 +324,7 @@ public class EventServiceImpl implements EventService {
         return CommentMapperUtil.toCommentDto(newComment);
     }
 
+    @Transactional
     @Override
     public CommentDto updateComment(UpdateCommentDtoUser updateCommentDto, long userId, long commentId) {
         Comment comment = commentRepository.findById(commentId)
