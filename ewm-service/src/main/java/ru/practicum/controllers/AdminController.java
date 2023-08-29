@@ -12,8 +12,7 @@ import ru.practicum.compilation.dto.CompilationDto;
 import ru.practicum.compilation.dto.NewCompilationDto;
 import ru.practicum.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.compilation.service.CompilationService;
-import ru.practicum.event.dto.EventFullDto;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.*;
 import ru.practicum.event.model.RequestParamAdmin;
 import ru.practicum.event.service.EventService;
 import ru.practicum.exception.ValidationException;
@@ -180,6 +179,19 @@ public class AdminController {
             log.info("Обновлена подборка событий с id {}", compId);
         } else {
             log.info("Обновление подборки событий с id {} не выполнено. Необходимо определить ошибку", compId);
+        }
+        return result;
+    }
+
+    @PatchMapping("/comments/{commentId}")
+    public CommentDto updateCommentStatus(@RequestBody @Valid CommentStatusUpdateDto updateCommentDto,
+                                    @PositiveOrZero @PathVariable("commentId") long commentId) {
+
+        CommentDto result = eventService.updateCommentStatus(updateCommentDto, commentId);
+        if (result != null) {
+            log.info("Изменен статус комментария с id {}", commentId);
+        } else {
+            log.info("Изменение статуса комментария с id {} не выполнено. Необходимо определить ошибку", commentId);
         }
         return result;
     }

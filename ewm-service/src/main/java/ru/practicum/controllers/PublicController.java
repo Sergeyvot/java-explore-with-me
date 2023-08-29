@@ -13,6 +13,7 @@ import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.category.service.CategoryService;
 import ru.practicum.compilation.dto.CompilationDto;
 import ru.practicum.compilation.service.CompilationService;
+import ru.practicum.event.dto.CommentDto;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.model.RequestParamUser;
@@ -108,5 +109,15 @@ public class PublicController {
         log.info("Запрошена информация о событиях по указанным фильтрам. Данные получены");
 
         return result;
+    }
+
+    @GetMapping("/events/{eventId}/comments")
+    public Collection<CommentDto> findCommentsByEventPublic(@PositiveOrZero @PathVariable("eventId") long eventId,
+                                                            @RequestParam(defaultValue = "0", required = false) Integer from,
+                                                            @RequestParam(defaultValue = "10", required = false) Integer size) {
+
+        log.info("Запрошен список комментариев к событию id {}. Данные получены", eventId);
+
+        return eventService.findCommentsByEventPublic(eventId, from, size);
     }
 }

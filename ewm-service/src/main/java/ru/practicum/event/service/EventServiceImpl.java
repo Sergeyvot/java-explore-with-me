@@ -14,19 +14,23 @@ import ru.practicum.StatClient;
 import ru.practicum.category.dao.CategoryRepository;
 import ru.practicum.category.model.Category;
 import ru.practicum.dto.HitDto;
+import ru.practicum.event.CommentMapperUtil;
 import ru.practicum.event.EventMapperUtil;
 import ru.practicum.event.State;
+import ru.practicum.event.StateComment;
+import ru.practicum.event.dao.CommentRepository;
 import ru.practicum.event.dao.EventRepository;
-import ru.practicum.event.dto.EventFullDto;
-import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.dto.NewEventDto;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.*;
+import ru.practicum.event.model.Comment;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.model.RequestParamAdmin;
 import ru.practicum.event.model.RequestParamUser;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
+import ru.practicum.request.Status;
+import ru.practicum.request.dao.RequestRepository;
+import ru.practicum.request.model.Request;
 import ru.practicum.user.dao.UserRepository;
 import ru.practicum.user.model.User;
 
@@ -45,6 +49,8 @@ public class EventServiceImpl implements EventService {
     private final EventRepository repository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final RequestRepository requestRepository;
+    private final CommentRepository commentRepository;
     private final StatClient statClient;
 
     @Transactional
@@ -52,7 +58,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto createEvent(NewEventDto newEventDto, long userId) {
         User initiator = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
-        Category category = categoryRepository.findById((long)newEventDto.getCategory())
+        Category category = categoryRepository.findById((long) newEventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", newEventDto.getCategory())));
 
         Event newEvent = EventMapperUtil.toEvent(newEventDto, category, initiator).toBuilder()
@@ -81,7 +87,7 @@ public class EventServiceImpl implements EventService {
         Event updateEvent = event.toBuilder()
                 .annotation(updateEventDto.getAnnotation() != null ? updateEventDto.getAnnotation() : event.getAnnotation())
                 .category(updateEventDto.getCategory() != null ?
-                        categoryRepository.findById((long)updateEventDto.getCategory())
+                        categoryRepository.findById((long) updateEventDto.getCategory())
                                 .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", updateEventDto.getCategory()))) :
                         event.getCategory())
                 .description(updateEventDto.getDescription() != null ? updateEventDto.getDescription() : event.getDescription())
@@ -112,7 +118,11 @@ public class EventServiceImpl implements EventService {
 
         log.info("Пользователем с id {} обновлено созданное им событие с id {}. Обновленные данные сохранены",
                 userId, eventId);
-        return EventMapperUtil.toEventFullDto(repository.save(resultUpdateEvent));
+
+        EventFullDto eventFullDto = EventMapperUtil.toEventFullDto(repository.save(resultUpdateEvent));
+
+        return eventFullDto.toBuilder()
+                .comments(this.eventCommentsFiller(eventId)).build();
     }
 
     @Transactional
@@ -132,7 +142,7 @@ public class EventServiceImpl implements EventService {
         Event updateEvent = event.toBuilder()
                 .annotation(updateEventDto.getAnnotation() != null ? updateEventDto.getAnnotation() : event.getAnnotation())
                 .category(updateEventDto.getCategory() != null ?
-                        categoryRepository.findById((long)updateEventDto.getCategory())
+                        categoryRepository.findById((long) updateEventDto.getCategory())
                                 .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found", updateEventDto.getCategory()))) :
                         event.getCategory())
                 .description(updateEventDto.getDescription() != null ? updateEventDto.getDescription() : event.getDescription())
@@ -163,7 +173,10 @@ public class EventServiceImpl implements EventService {
         }
 
         log.info("Администратором обновлено событие с id {}. Обновленные данные сохранены", eventId);
-        return EventMapperUtil.toEventFullDto(repository.save(resultUpdateEvent));
+        EventFullDto eventFullDto = EventMapperUtil.toEventFullDto(repository.save(resultUpdateEvent));
+
+        return eventFullDto.toBuilder()
+                .comments(this.eventCommentsFiller(eventId)).build();
     }
 
     @Override
@@ -181,6 +194,7 @@ public class EventServiceImpl implements EventService {
         return resultList.stream()
                 .map(EventMapperUtil::toEventFullDto)
                 .peek(ev -> ev.toBuilder().views(this.getHitsById(ev.getId())).build())
+                .peek(ev -> ev.toBuilder().comments(this.eventCommentsFiller(ev.getId())).build())
                 .collect(Collectors.toList());
     }
 
@@ -193,6 +207,7 @@ public class EventServiceImpl implements EventService {
         log.info("Запрошена информация о событиях, созданных пользователем с id {}. Данные получены", userId);
         return repository.findAllByInitiatorId(userId, pageable).stream()
                 .map(EventMapperUtil::toEventShortDto)
+                .peek(ev -> ev.toBuilder().comments(this.eventCommentsFiller(ev.getId())).build())
                 .collect(Collectors.toList());
     }
 
@@ -209,7 +224,8 @@ public class EventServiceImpl implements EventService {
         }
         log.info("Пользователь с id {} запросил полную информацию о созданном им событии с id {}. Данные получены",
                 userId, eventId);
-        return EventMapperUtil.toEventFullDto(event);
+        return EventMapperUtil.toEventFullDto(event).toBuilder()
+                .comments(this.eventCommentsFiller(eventId)).build();
     }
 
     @Override
@@ -223,7 +239,8 @@ public class EventServiceImpl implements EventService {
         Event updateEvent = event.toBuilder().views(this.getHitsById(id)).build();
 
         log.info("В публичном эндпоинте запрошена полная информация о событии с id {}. Данные получены", id);
-        return EventMapperUtil.toEventFullDto(repository.save(updateEvent));
+        return EventMapperUtil.toEventFullDto(repository.save(updateEvent)).toBuilder()
+                .comments(this.eventCommentsFiller(id)).build();
     }
 
     @Override
@@ -243,7 +260,131 @@ public class EventServiceImpl implements EventService {
         return resultList.stream()
                 .map(EventMapperUtil::toEventShortDto)
                 .peek(ev -> ev.toBuilder().views(this.getHitsById(ev.getId())).build())
+                .peek(ev -> ev.toBuilder().comments(this.eventCommentsFiller(ev.getId())).build())
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public CommentDto updateCommentStatus(CommentStatusUpdateDto updateCommentDto, long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException(String.format("Comment with id=%d was not found", commentId)));
+        Comment updateComment;
+
+        if (!comment.getStateComment().equals(StateComment.PENDING)) {
+            throw new ConflictException("Can only change the status of a comment in the waiting state.");
+        }
+
+        if (updateCommentDto.getStateComment().equals("PUBLISH_COMMENT")) {
+            Comment updateStatusComment = comment.toBuilder()
+                    .stateComment(StateComment.PUBLISHED)
+                    .publishedOn(Instant.now()).build();
+            updateComment = commentRepository.save(updateStatusComment);
+        } else if (updateCommentDto.getStateComment().equals("REJECT_COMMENT")) {
+            Comment updateStatusComment = comment.toBuilder()
+                    .stateComment(StateComment.REJECTED).build();
+            updateComment = commentRepository.save(updateStatusComment);
+        } else {
+            updateComment = comment;
+        }
+
+        return CommentMapperUtil.toCommentDto(updateComment);
+    }
+
+    @Override
+    public Collection<CommentDto> findCommentsByEventPublic(long eventId, Integer from, Integer size) {
+        Event event = repository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
+
+        Pageable pageable = PageRequest.of(from > 0 ? from / size : 0, size);
+
+        return commentRepository.findAllByEventIdAndStatePublished(eventId, "PUBLISHED", pageable).stream()
+                .map(CommentMapperUtil::toCommentDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public CommentDto addComment(NewCommentDto newCommentDto, long userId, long eventId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
+        Event event = repository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
+
+        if (event.getPublishedOn() == null) {
+            throw new ConflictException("Can only comment on published events.");
+        }
+
+        Request request = requestRepository.findByRequesterAndEvent(userId, eventId);
+        if (!request.getStatus().equals(Status.CONFIRMED)) {
+            throw new ConflictException("Only the user whose participation request has been confirmed can comment on the event.");
+        }
+
+        Comment newComment = commentRepository.save(CommentMapperUtil.toComment(newCommentDto, user, event));
+        return CommentMapperUtil.toCommentDto(newComment);
+    }
+
+    @Transactional
+    @Override
+    public CommentDto updateComment(UpdateCommentDtoUser updateCommentDto, long userId, long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException(String.format("Comment with id=%d was not found", commentId)));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
+
+        if (userId != comment.getAuthor().getId()) {
+            throw new ConflictException("Only the author can change the comment.");
+        }
+        if (comment.getStateComment().equals(StateComment.PUBLISHED)) {
+            throw new ConflictException("Cannot change a comment that has already been published.");
+        }
+
+        Comment updateComment = comment.toBuilder()
+                .text(updateCommentDto.getText()).build();
+        return CommentMapperUtil.toCommentDto(commentRepository.save(updateComment));
+    }
+
+    @Override
+    public void deleteComment(long userId, long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException(String.format("Comment with id=%d was not found", commentId)));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
+
+        if (userId != comment.getAuthor().getId()) {
+            throw new ConflictException("Only the author of the comment can delete it.");
+        }
+        commentRepository.deleteById(commentId);
+    }
+
+    @Override
+    public List<CommentDto> findCommentsByEventUser(long userId, long eventId, Integer from, Integer size) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
+        Event event = repository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found", eventId)));
+
+        if (userId != event.getInitiator().getId()) {
+            throw new ConflictException("Only the initiator of the event can request comments on the event.");
+        }
+        Pageable pageable = PageRequest.of(from > 0 ? from / size : 0, size);
+
+        return commentRepository.findAllByEventId(eventId, pageable).stream()
+                .map(CommentMapperUtil::toCommentDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public CommentDto findCommentUser(long userId, long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException(String.format("Comment with id=%d was not found", commentId)));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found", userId)));
+
+        if (userId != comment.getAuthor().getId()) {
+            throw new ConflictException("Only the author can request information on his comment.");
+        }
+        return CommentMapperUtil.toCommentDto(comment);
     }
 
     private Integer getHitsById(Long eventId) {
@@ -272,5 +413,13 @@ public class EventServiceImpl implements EventService {
         hitDto.ip(ip);
         hitDto.timestamp(LocalDateTime.now());
         statClient.addPost(hitDto.build());
+    }
+
+    private List<CommentDto> eventCommentsFiller(long eventId) {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        return commentRepository.findAllByEventIdAndStatePublished(eventId, "PUBLISHED", pageable).stream()
+                .map(CommentMapperUtil::toCommentDto)
+                .collect(Collectors.toList());
     }
 }

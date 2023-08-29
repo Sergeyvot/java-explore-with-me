@@ -5,10 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.event.dto.EventFullDto;
-import ru.practicum.event.dto.EventShortDto;
-import ru.practicum.event.dto.NewEventDto;
-import ru.practicum.event.dto.UpdateEventDto;
+import ru.practicum.event.dto.*;
 import ru.practicum.event.service.EventService;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
@@ -142,5 +139,69 @@ public class PrivateController {
                 userId, eventId);
 
         return eventService.findFullEventUser(userId, eventId);
+    }
+
+    @PostMapping("/{userId}/events/{eventId}/comments")
+    @ResponseStatus(code = HttpStatus.CREATED)
+    public CommentDto addComment(@RequestBody @Valid NewCommentDto newCommentDto,
+                                 @PositiveOrZero @PathVariable("userId") long userId,
+                                 @PositiveOrZero @PathVariable("eventId") long eventId) {
+
+        CommentDto result = eventService.addComment(newCommentDto, userId, eventId);
+        if (result != null) {
+            log.info("Добавлен комментарий с id {} к событию id {}", result.getId(), eventId);
+        } else {
+            log.info("Добавление комментария к событию с id {} не выполнено. Необходимо определить ошибку", eventId);
+        }
+        return result;
+    }
+
+    @PatchMapping("/{userId}/comments/{commentId}")
+    public CommentDto updateComment(@RequestBody @Valid UpdateCommentDtoUser updateCommentDto,
+                                    @PositiveOrZero @PathVariable("userId") long userId,
+                                    @PositiveOrZero @PathVariable("commentId") long commentId) {
+
+        CommentDto result = eventService.updateComment(updateCommentDto, userId, commentId);
+        if (result != null) {
+            log.info("Изменен комментарий с id {}.", commentId);
+        } else {
+            log.info("Изменение комментария с id {} не выполнено. Необходимо определить ошибку", commentId);
+        }
+        return result;
+    }
+
+    @DeleteMapping("/{userId}/comments/{commentId}")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    public void deleteComment(@PositiveOrZero @PathVariable("userId") long userId,
+                              @PositiveOrZero @PathVariable("commentId") long commentId) {
+        eventService.deleteComment(userId, commentId);
+
+        log.info("Удален комментарий с id {}", commentId);
+    }
+
+    @GetMapping("/{userId}/events/{eventId}/comments")
+    public Collection<CommentDto> findCommentsByEventUser(@PositiveOrZero @PathVariable("userId") int userId,
+                                                          @PositiveOrZero @PathVariable("eventId") long eventId,
+                                                          @RequestParam(defaultValue = "0", required = false) Integer from,
+                                                          @RequestParam(defaultValue = "10", required = false) Integer size) {
+
+        log.info("Пользователем с id {} запрошен список комментариев к созданному им событию id {}. Данные получены",
+                userId, eventId);
+
+        return eventService.findCommentsByEventUser(userId, eventId, from, size);
+    }
+
+    @GetMapping("/{userId}/comments/{commentId}")
+    public CommentDto findCommentUser(@PositiveOrZero @PathVariable("userId") int userId,
+                                      @PositiveOrZero @PathVariable("commentId") long commentId) {
+
+        CommentDto result = eventService.findCommentUser(userId, commentId);
+        if (result != null) {
+            log.info("Пользователем с id {} запрошен свой комментарий id {}. Данные получены",
+                    userId, commentId);
+        } else {
+            log.info("Получение комментария с id {} не выполнено. Необходимо определить ошибку", commentId);
+        }
+        return result;
     }
 }
